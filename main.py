@@ -11,6 +11,7 @@ import uuid
 import random
 from utils.air_quality import AirQualitySensor
 from utils.forecasting import PollutionForecaster
+from utils.image_analyzer import ImagePollutionAnalyzer
 
 class AirPollutionForecaster:
     def __init__(self):
@@ -23,6 +24,7 @@ class AirPollutionForecaster:
         self.alert_count = 0
         self.last_alert_time = 0
         self.selected_location = None
+        self.image_analyzer = ImagePollutionAnalyzer()
         
         # Enhanced CSS styling for air quality monitoring
         st.markdown("""
@@ -522,13 +524,28 @@ def main():
     st.title("🌬️ Air Pollution Forecasting System")
     st.markdown("---")
     
+    # Create tabs for different functionalities
+    tab1, tab2 = st.tabs(["📊 Air Quality Monitoring", "📷 Image Analysis"])
+    
+    with tab1:
+        show_monitoring_interface()
+    
+    with tab2:
+        show_image_analysis_interface()
+
+def show_monitoring_interface():
+    """Show the main air quality monitoring interface."""
+    st.header("📊 Real-time Air Quality Monitoring")
+    st.markdown("---")
+    
     # Sidebar for configuration
     st.sidebar.header("⚙️ Configuration")
     
     # Location selection
-    location = st.sidebar.selectbox(
-        "Select Location",
-        ["New York", "Los Angeles", "Chicago", "Houston", "Phoenix", "Philadelphia", "San Antonio", "San Diego"]
+    location = st.sidebar.text_input(
+        "Enter Location Name",
+        value="Current Location",
+        placeholder="e.g., Downtown, Industrial Zone, Rural Area"
     )
     
     # Monitoring duration
@@ -556,6 +573,156 @@ def main():
         forecaster.monitoring_duration = duration_hours * 3600  # Convert to seconds
         forecaster.selected_location = location  # Set the selected location
         forecaster.start_monitoring()
+
+def show_image_analysis_interface():
+    """Show the image analysis interface."""
+    st.header("📷 Visual Pollution Analysis")
+    st.markdown("---")
+    
+    st.markdown("""
+    ### 🔍 How it works:
+    This tool analyzes images captured from your camera to detect visual indicators of air pollution:
+    - **Visibility Analysis**: Detects haze, smog, and reduced visibility
+    - **Sky Color Analysis**: Identifies brown/gray tints indicating pollution
+    - **Smoke Detection**: Detects potential smoke plumes or industrial emissions
+    """)
+    
+    # Initialize image analyzer
+    if 'image_analyzer' not in st.session_state:
+        st.session_state.image_analyzer = ImagePollutionAnalyzer()
+    
+    # Camera controls
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        if st.button("📹 Start Camera", key="start_camera"):
+            if st.session_state.image_analyzer.start_camera():
+                st.session_state.camera_active = True
+                st.success("✅ Camera started successfully!")
+    
+    with col2:
+        if st.button("📸 Capture & Analyze", key="capture_image"):
+            if hasattr(st.session_state, 'camera_active') and st.session_state.camera_active:
+                # Capture image
+                image = st.session_state.image_analyzer.capture_image()
+                if image is not None:
+                    st.session_state.captured_image = image
+                    st.session_state.analysis_results = st.session_state.image_analyzer.analyze_overall_pollution(image)
+                    st.success("✅ Image captured and analyzed!")
+            else:
+                st.error("❌ Please start camera first!")
+    
+    with col3:
+        if st.button("🛑 Stop Camera", key="stop_camera"):
+            st.session_state.image_analyzer.release_camera()
+            st.session_state.camera_active = False
+            st.success("✅ Camera stopped!")
+    
+    # Display captured image and analysis
+    if hasattr(st.session_state, 'captured_image') and st.session_state.captured_image is not None:
+        st.markdown("### 📷 Captured Image")
+        
+        col_img1, col_img2 = st.columns(2)
+        
+        with col_img1:
+            st.image(st.session_state.captured_image, caption="Captured Image", use_container_width=True)
+            
+            # Save image option
+            if st.button("💾 Save Image"):
+                filepath = st.session_state.image_analyzer.save_image(st.session_state.captured_image)
+                st.success(f"✅ Image saved to: {filepath}")
+        
+        with col_img2:
+            if hasattr(st.session_state, 'analysis_results') and st.session_state.analysis_results:
+                results = st.session_state.analysis_results
+                
+                # Overall assessment
+                st.markdown("### 🎯 Overall Assessment")
+                quality_color = {
+                    "Good": "🟢",
+                    "Moderate": "🟡", 
+                    "Poor": "🔴"
+                }
+                
+                st.markdown(f"""
+                <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                            color: white; padding: 20px; border-radius: 12px; text-align: center; margin: 10px 0;">
+                    <h3>{quality_color.get(results['overall_quality'], '⚪')} Air Quality: {results['overall_quality']}</h3>
+                    <p><strong>Estimated AQI:</strong> {results['aqi_estimate']}</p>
+                </div>
+                """, unsafe_allow_html=True)
+                
+                # Pollution indicators
+                if results['pollution_indicators']:
+                    st.markdown("### ⚠️ Detected Pollution Indicators")
+                    for indicator in results['pollution_indicators']:
+                        st.warning(f"• {indicator}")
+                else:
+                    st.success("✅ No significant pollution indicators detected")
+        
+        # Detailed analysis
+        if hasattr(st.session_state, 'analysis_results') and st.session_state.analysis_results:
+            results = st.session_state.analysis_results
+            
+            st.markdown("### 📊 Detailed Analysis")
+            
+            col_analysis1, col_analysis2, col_analysis3 = st.columns(3)
+            
+            with col_analysis1:
+                st.markdown("#### 👁️ Visibility Analysis")
+                vis = results['visibility_analysis']
+                st.info(f"**Status:** {vis['visibility']}")
+                st.metric("Contrast", f"{vis['contrast']:.1f}")
+                st.metric("Brightness", f"{vis['brightness']:.1f}")
+                st.metric("Edge Density", f"{vis['edge_density']:.3f}")
+            
+            with col_analysis2:
+                st.markdown("#### 🌤️ Sky Analysis")
+                sky = results['sky_analysis']
+                st.info(f"**Status:** {sky['sky_quality']}")
+                st.metric("Blue Intensity", f"{sky['blue_intensity']:.1f}")
+                st.metric("Brown Ratio", f"{sky['brown_ratio']:.3f}")
+                st.metric("Gray Ratio", f"{sky['gray_ratio']:.3f}")
+            
+            with col_analysis3:
+                st.markdown("#### 💨 Smoke Detection")
+                smoke = results['smoke_analysis']
+                if smoke['smoke_detected']:
+                    st.error("🚨 Smoke plumes detected!")
+                    st.metric("Smoke Coverage", f"{smoke['smoke_coverage']:.1%}")
+                    st.metric("Smoke Regions", len(smoke['smoke_regions']))
+                else:
+                    st.success("✅ No smoke detected")
+                    st.metric("Smoke Coverage", "0%")
+            
+            # Recommendations
+            st.markdown("### 💡 Recommendations & Precautions")
+            
+            if results['overall_quality'] == "Poor":
+                st.error("""
+                **🚨 HIGH POLLUTION ALERT**
+                - Avoid outdoor activities
+                - Use air purifiers indoors
+                - Wear N95 masks if going outside
+                - Close windows and doors
+                - Monitor local air quality alerts
+                """)
+            elif results['overall_quality'] == "Moderate":
+                st.warning("""
+                **⚠️ MODERATE POLLUTION**
+                - Limit outdoor activities for sensitive groups
+                - Consider wearing masks
+                - Use air purifiers if available
+                - Monitor symptoms (coughing, eye irritation)
+                """)
+            else:
+                st.success("""
+                **✅ GOOD AIR QUALITY**
+                - Safe for outdoor activities
+                - Normal ventilation is fine
+                - Continue regular activities
+                - Monitor for changes
+                """)
 
 if __name__ == "__main__":
     main()
