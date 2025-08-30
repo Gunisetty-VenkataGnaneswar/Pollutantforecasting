@@ -1,10 +1,2 @@
 Timestamp,Location,City Type,PM2.5,PM10,CO,NO2,O3,SO2,AQI,Air Quality Status,Dominant Pollutants,Session ID
-2025-08-30 17:58:39.290587,New York,metropolitan,15.12,48.93,2.58,56.28,53.48,3.95,57.3,Moderate,"NO2, PM2.5, CO",40
-2025-08-30 17:59:17.904434,New York,metropolitan,11.74,37.99,2.0,43.7,41.52,3.07,48.9,Good,"NO2, PM2.5, CO",40
-2025-08-30 17:59:20.109788,New York,metropolitan,13.66,44.22,2.33,50.87,48.33,3.57,54.3,Moderate,"NO2, PM2.5, CO",40
-2025-08-30 17:59:22.342279,New York,metropolitan,16.49,53.39,2.82,61.41,58.35,4.31,60.2,Moderate,"NO2, PM2.5, CO",40
-2025-08-30 17:59:24.555400,New York,metropolitan,12.9,41.75,2.2,48.03,45.63,3.37,52.7,Moderate,"NO2, PM2.5, CO",40
-2025-08-30 17:59:26.764605,New York,metropolitan,14.18,45.91,2.42,52.81,50.18,3.7,55.4,Moderate,"NO2, PM2.5, CO",40
-2025-08-30 17:59:28.970755,New York,metropolitan,13.57,43.92,2.32,50.52,48.0,3.54,54.1,Moderate,"NO2, PM2.5, CO",40
-2025-08-30 17:59:31.169783,New York,metropolitan,14.56,47.12,2.49,54.2,51.5,3.8,56.2,Moderate,"NO2, PM2.5, CO",40
-2025-08-30 17:59:33.378209,New York,metropolitan,16.57,53.64,2.83,61.7,58.62,4.33,60.4,Moderate,"NO2, PM2.5, CO",40
+2025-08-30 18:49:42.116871,Current Location,urban,17.0,47.79,1.92,47.72,55.28,3.88,61.3,Moderate,"NO2, PM2.5, CO",41
