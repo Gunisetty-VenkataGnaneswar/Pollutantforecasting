@@ -1,0 +1,2 @@
+Timestamp,Location,City Type,PM2.5,PM10,CO,NO2,O3,SO2,AQI,Air Quality Status,Dominant Pollutants,Session ID
+2025-08-30 17:07:10.037734,Los Angeles,metropolitan,36.42,55.54,2.1,85.83,46.94,8.14,103.3,Unhealthy for Sensitive Groups,"NO2, PM2.5, CO",37
